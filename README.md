@@ -53,6 +53,22 @@ Run inference with LoRA weights:
 uv run python scripts/inference_siglip_lora.py assets/image.jpg \"a cat\" \"a dog\" --lora-path outputs/siglip_lora/siglip_lora.pt
 ```
 
+## Linear Probe (Classification)
+Run zero-shot classification first, then train a linear probe on top of frozen SigLIP image embeddings:
+
+```bash
+uv run --group train python scripts/linear_probe_siglip.py
+```
+
+Defaults:
+- dataset: `Bingsu/Human_Action_Recognition`
+- model: `google/siglip-base-patch16-224`
+- evaluation: by default the script splits `train` into train/eval (`--split-train-for-eval`)
+
+The script reports:
+- zero-shot accuracy (`train_acc`, `eval_acc`)
+- linear-probe accuracy after training (`train_acc`, `eval_acc`)
+
 ## Calibration Utility
 Convert similarity score to probability:
 
