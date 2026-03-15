@@ -28,10 +28,26 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="SigLIP zero-shot + linear-probe classification"
     )
-    parser.add_argument("--model", default="google/siglip-base-patch16-224")
-    parser.add_argument("--dataset", default="Bingsu/Human_Action_Recognition")
-    parser.add_argument("--train-split", default="train")
-    parser.add_argument("--eval-split", default="validation")
+    parser.add_argument(
+        "--model",
+        default="google/siglip-base-patch16-224",
+        help="Base SigLIP checkpoint (HF id or local path)",
+    )
+    parser.add_argument(
+        "--dataset",
+        default="Bingsu/Human_Action_Recognition",
+        help="Hugging Face dataset id for image classification",
+    )
+    parser.add_argument(
+        "--train-split",
+        default="train",
+        help="Dataset split used as source training data",
+    )
+    parser.add_argument(
+        "--eval-split",
+        default="validation",
+        help="Eval split used only when --no-split-train-for-eval is set",
+    )
     parser.add_argument(
         "--split-train-for-eval",
         action="store_true",
@@ -50,10 +66,30 @@ def parse_args() -> argparse.Namespace:
         default=0.2,
         help="Fraction of train split used for eval when --split-train-for-eval is enabled",
     )
-    parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--epochs", type=int, default=50)
-    parser.add_argument("--lr", type=float, default=3e-4)
-    parser.add_argument("--weight-decay", type=float, default=1e-4)
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=32,
+        help="Batch size for feature extraction and probe train/eval",
+    )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=50,
+        help="Number of probe training epochs",
+    )
+    parser.add_argument(
+        "--lr",
+        type=float,
+        default=3e-4,
+        help="Learning rate for AdamW probe optimizer",
+    )
+    parser.add_argument(
+        "--weight-decay",
+        type=float,
+        default=1e-4,
+        help="Weight decay for AdamW probe optimizer",
+    )
     parser.add_argument(
         "--max-train-samples",
         help="Number of train samples. 0 for all",
@@ -66,13 +102,22 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=0,
     )
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--prompt-template", default="a photo of {}")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed for split/training reproducibility",
+    )
+    parser.add_argument(
+        "--prompt-template",
+        default="a photo of {}",
+        help="Prompt template for zero-shot labels; include '{}' placeholder",
+    )
     parser.add_argument(
         "--init-from-zeroshot",
         action="store_true",
         default=True,
-        help="Initialize probe weights from zero-shot text embeddings",
+        help="Initialize probe from zero-shot text embeddings (recommended)",
     )
     parser.add_argument(
         "--no-init-from-zeroshot",
@@ -93,7 +138,9 @@ def parse_args() -> argparse.Namespace:
         help="Use final epoch checkpoint instead of best eval checkpoint",
     )
     parser.add_argument(
-        "--device", default="cuda" if torch.cuda.is_available() else "cpu"
+        "--device",
+        default="cuda" if torch.cuda.is_available() else "cpu",
+        help="Torch device (cpu, cuda, cuda:0, ...)",
     )
     return parser.parse_args()
 
