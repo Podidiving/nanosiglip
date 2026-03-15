@@ -29,6 +29,30 @@ Optional flags:
 - `--revision` (default: `main`)
 - `--device` (default: auto: `cuda` if available, else `cpu`)
 
+## LoRA Fine-Tuning
+Train LoRA adapters (default dataset: `nlphuji/flickr30k`):
+
+```bash
+uv run --group train python scripts/train_siglip_lora.py
+```
+
+The training script:
+- prints evaluation metrics **before training** and **after training**
+- writes TensorBoard logs to `runs/siglip_lora` (configurable via `--log-dir`)
+- saves LoRA weights to `outputs/siglip_lora/siglip_lora.pt`
+
+Start TensorBoard:
+
+```bash
+uv run --group train tensorboard --logdir runs/siglip_lora
+```
+
+Run inference with LoRA weights:
+
+```bash
+uv run python scripts/inference_siglip_lora.py assets/image.jpg \"a cat\" \"a dog\" --lora-path outputs/siglip_lora/siglip_lora.pt
+```
+
 ## Calibration Utility
 Convert similarity score to probability:
 

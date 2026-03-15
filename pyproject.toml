@@ -26,3 +26,9 @@ dev = [
     "ruff>=0.15.6",
     "transformers>=5.3.0",
 ]
+train = [
+    "datasets<4",
+    "setuptools<81",
+    "tensorboard>=2.20.0",
+    "tqdm>=4.67.3",
+]
