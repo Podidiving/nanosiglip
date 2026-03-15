@@ -450,9 +450,10 @@ def main() -> None:
     image_processor = SigLIPImageProcessor.from_pretrained(model_path)
     text_processor = SigLIPTextProcessor.from_pretrained(model_path)
 
-    collate = lambda batch: collate_images(
-        batch, schema.image_col, schema.label_col, image_processor, num_classes
-    )
+    def collate(batch):
+        return collate_images(
+            batch, schema.image_col, schema.label_col, image_processor, num_classes
+        )
     train_loader = DataLoader(
         train_ds,
         batch_size=args.batch_size,
