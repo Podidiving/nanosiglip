@@ -1,0 +1,86 @@
+# nanosiglip
+
+Minimal, pure-PyTorch SigLIP implementation focused on compatibility with Google SigLIP checkpoints from Hugging Face.
+
+## Goals
+- Keep runtime dependencies small (`torch`, `safetensors`, `sentencepiece`, `Pillow` for image loading).
+- Load original SigLIP weights directly from Hugging Face.
+- Match `transformers` outputs for preprocessing and inference.
+
+## Repository Layout
+- `src/nanosiglip/siglip/`: SigLIP implementation and preprocessors.
+- `scripts/run_siglip.py`: End-to-end inference example for one image and multiple text prompts.
+- `tests/`: parity tests against `transformers` (model, image preprocessing, text preprocessing, and e2e pipeline).
+
+## Installation
+```bash
+uv sync --dev
+```
+
+## Usage
+Run pure-torch SigLIP inference:
+
+```bash
+uv run python scripts/run_siglip.py assets/image.jpg "a cat" "a dog" "a landscape"
+```
+
+Optional flags:
+- `--model` (default: `google/siglip-base-patch16-224`)
+- `--revision` (default: `main`)
+- `--device` (default: auto: `cuda` if available, else `cpu`)
+
+## Calibration Utility
+Convert similarity score to probability:
+
+```bash
+uv run python scripts/siglip_calibration.py predict --similarity 0.42 --model google/siglip-base-patch16-224
+```
+
+Or provide custom calibration parameters:
+
+```bash
+uv run python scripts/siglip_calibration.py predict --similarity 0.42 --scale 10.0 --bias -5.0
+```
+
+Fit calibration (`scale`, `bias`) from labeled data:
+
+```bash
+uv run python scripts/siglip_calibration.py fit --data data/similarity_labels.csv --out calibration.json
+```
+
+CSV format:
+- `similarity`: cosine similarity between image/text embeddings
+- `label`: binary target (`0` or `1`)
+
+Example Python usage:
+
+```python
+import torch
+from PIL import Image
+from nanosiglip.siglip import SigLIP, SigLIPImageProcessor, SigLIPTextProcessor
+
+model, model_path = SigLIP.from_pretrained("google/siglip-base-patch16-224", return_model_path=True)
+image_processor = SigLIPImageProcessor.from_pretrained(model_path)
+text_processor = SigLIPTextProcessor.from_pretrained(model_path)
+
+image = Image.open("assets/image.jpg")
+texts = ["a cat", "a dog", "a landscape"]
+
+image_inputs = image_processor(images=image, return_tensors="pt")
+text_inputs = text_processor(texts, padding="max_length", truncation=True, max_length=64, return_tensors="pt")
+
+with torch.no_grad():
+    outputs = model(
+        input_ids=text_inputs.input_ids,
+        pixel_values=image_inputs.pixel_values,
+    )
+```
+
+## Testing
+Run all tests:
+
+```bash
+uv run pytest -q
+```
+
+The suite checks parity with `transformers` and ensures e2e inference matches on `assets/image.jpg`.
